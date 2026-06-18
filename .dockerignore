@@ -1,0 +1,9 @@
+target/
+hospital_db*
+.git
+.idea
+.vscode
+.mvn
+*.db
+*.log
+*.md
