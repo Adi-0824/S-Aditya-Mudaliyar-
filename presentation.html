@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hospital Management System — Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:    #4f8cff;
+    --teal:    #00d4aa;
+    --purple:  #a855f7;
+    --pink:    #f472b6;
+    --dark:    #0a0f1e;
+    --card:    rgba(255,255,255,0.06);
+    --border:  rgba(255,255,255,0.12);
+    --text:    #e2e8f0;
+    --muted:   #94a3b8;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--dark); font-family: 'Inter', sans-serif; color: var(--text); }
+
+  /* ── SLIDESHOW ── */
+  #deck { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 48px 64px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    transform: translateX(60px);
+    overflow: hidden;
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all; transform: translateX(0);
+  }
+  .slide.exit {
+    opacity: 0; transform: translateX(-60px);
+  }
+
+  /* animated background blobs */
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0;
+  }
+  .blob-1 { width: 500px; height: 500px; background: var(--blue);   top: -150px; left: -100px; }
+  .blob-2 { width: 400px; height: 400px; background: var(--purple); bottom: -120px; right: -100px; }
+  .blob-3 { width: 300px; height: 300px; background: var(--teal);   bottom: 40px; left: 30%; }
+
+  .slide-content { position: relative; z-index: 1; width: 100%; max-width: 1100px; }
+
+  /* ── NAVIGATION ── */
+  #nav {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; z-index: 100;
+    background: rgba(255,255,255,0.06); backdrop-filter: blur(20px);
+    border: 1px solid var(--border); border-radius: 50px;
+    padding: 10px 24px;
+  }
+  #nav button {
+    background: none; border: none; cursor: pointer; color: var(--text);
+    font-size: 18px; width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+  }
+  #nav button:hover { background: rgba(255,255,255,0.12); }
+  #slide-counter { font-size: 14px; color: var(--muted); min-width: 56px; text-align: center; }
+  .dot-nav { display: flex; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.2s; }
+  .dot.active-dot { background: var(--blue); width: 22px; border-radius: 4px; }
+
+  /* ── SLIDE PROGRESS BAR ── */
+  #progress { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg,var(--blue),var(--teal)); transition: width 0.4s; z-index: 200; }
+
+  /* ── TYPOGRAPHY ── */
+  .slide-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    background: rgba(79,140,255,0.12); color: var(--blue);
+    border: 1px solid rgba(79,140,255,0.3); border-radius: 20px;
+    padding: 4px 14px; margin-bottom: 20px;
+  }
+  h1.hero-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(32px,4vw,56px); font-weight: 800; line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--blue) 70%, var(--teal));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+  }
+  h2.slide-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(22px,3vw,38px); font-weight: 700;
+    background: linear-gradient(135deg, #fff, var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 28px;
+  }
+  .subtitle { font-size: 16px; color: var(--muted); line-height: 1.7; max-width: 680px; }
+  .lead { font-size: 18px; color: var(--text); font-weight: 500; margin-bottom: 12px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 28px; backdrop-filter: blur(10px);
+  }
+  .card-grid { display: grid; gap: 16px; }
+  .card-grid-2 { grid-template-columns: 1fr 1fr; }
+  .card-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  /* ── STAT CHIPS ── */
+  .stat-chip { text-align: center; }
+  .stat-number { font-size: 40px; font-weight: 800; font-family: 'Poppins',sans-serif; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .grad-blue { background: linear-gradient(135deg,var(--blue),var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-purple { background: linear-gradient(135deg,var(--purple),var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-teal { background: linear-gradient(135deg,var(--teal),var(--blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grad-pink { background: linear-gradient(135deg,var(--pink),var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  /* ── LIST ── */
+  .check-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .check-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; line-height: 1.5; }
+  .check-list li::before { content: '✦'; color: var(--teal); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+
+  /* ── TECH BADGE ── */
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+    padding: 6px 14px; border-radius: 8px; border: 1px solid; white-space: nowrap; }
+  .badge-blue   { background: rgba(79,140,255,0.12); color: var(--blue);   border-color: rgba(79,140,255,0.3); }
+  .badge-teal   { background: rgba(0,212,170,0.12);  color: var(--teal);   border-color: rgba(0,212,170,0.3); }
+  .badge-purple { background: rgba(168,85,247,0.12); color: var(--purple); border-color: rgba(168,85,247,0.3); }
+  .badge-pink   { background: rgba(244,114,182,0.12);color: var(--pink);   border-color: rgba(244,114,182,0.3); }
+  .badges-wrap  { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+  /* ── TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 14px; }
+  .tl-item { display: flex; gap: 16px; align-items: flex-start; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--blue); margin-top: 4px; flex-shrink: 0; box-shadow: 0 0 0 4px rgba(79,140,255,0.2); }
+  .tl-content { flex: 1; }
+  .tl-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tl-desc { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+  /* ── MODULE ICON CARD ── */
+  .mod-card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .mod-icon { font-size: 28px; }
+  .mod-title { font-size: 15px; font-weight: 700; }
+  .mod-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* ── TABLE ── */
+  .api-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .api-table th { text-align: left; padding: 10px 14px; color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .api-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .method { font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 5px; }
+  .GET    { background: rgba(0,212,170,0.15); color: var(--teal); }
+  .POST   { background: rgba(79,140,255,0.15); color: var(--blue); }
+  .PUT    { background: rgba(168,85,247,0.15); color: var(--purple); }
+  .DELETE { background: rgba(244,114,182,0.15); color: var(--pink); }
+
+  /* ── TITLE SLIDE SPECIAL ── */
+  .title-slide-inner { text-align: center; }
+  .logo-ring { width: 80px; height: 80px; border-radius: 24px; background: linear-gradient(135deg,var(--blue),var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 28px; box-shadow: 0 0 40px rgba(79,140,255,0.4); }
+  .author-chip { display: inline-flex; align-items: center; gap: 10px; margin-top: 32px; background: var(--card); border: 1px solid var(--border); border-radius: 50px; padding: 8px 20px; font-size: 14px; color: var(--muted); }
+  .author-chip span { color: var(--text); font-weight: 600; }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .arch-layer { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .arch-block { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: 12px; font-weight: 600; text-align: center; }
+  .arch-arrow { color: var(--muted); font-size: 20px; margin: 4px 0; }
+
+  /* ── CHART CONTAINER ── */
+  .chart-wrap { width: 100%; max-width: 340px; margin: 0 auto; }
+
+  /* ── QUOTE ── */
+  .quote-box { border-left: 3px solid var(--teal); padding: 16px 20px; background: rgba(0,212,170,0.06); border-radius: 0 12px 12px 0; }
+  .quote-box p { font-size: 15px; font-style: italic; color: var(--text); line-height: 1.7; }
+
+  /* ── FUTURE SCOPE ── */
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ── CONCLUSION ── */
+  .thank-you { font-size: clamp(40px,5vw,72px); font-family:'Poppins',sans-serif; font-weight:800;
+    background: linear-gradient(135deg,var(--blue),var(--teal),var(--purple));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="deck">
+
+  <!-- ═══════════════════════════════ SLIDE 1 — TITLE ═══════════════════════════════ -->
+  <div class="slide active" id="s1">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div>
+    <div class="slide-content title-slide-inner">
+      <div class="logo-ring">🏥</div>
+      <div class="slide-tag">MSc Computer Science • ICFAI University Raipur</div>
+      <h1 class="hero-title">Hospital Management<br>System</h1>
+      <p class="subtitle">A Web-Based Enterprise Platform using Java Spring Boot, Spring Data JPA,<br>H2 Database & a Responsive Single-Page Application Dashboard</p>
+      <div class="author-chip">Presented by <span>S Aditya</span> &nbsp;·&nbsp; Enrollment: 22STUCRPN01019 &nbsp;·&nbsp; Session 2024–26</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 2 — AGENDA ═══════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">📋 Overview</div>
+      <h2 class="slide-title">Presentation Agenda</h2>
+      <div class="card-grid card-grid-3">
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">🎯</div><div class="mod-title">Problem & Objectives</div><div class="mod-desc">Identifying gaps in manual hospital workflows and project goals</div></div>
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">🔬</div><div class="mod-title">Theoretical Background</div><div class="mod-desc">Spring Boot, JPA, H2 Database, SPA architecture</div></div>
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">🏗️</div><div class="mod-title">System Architecture</div><div class="mod-desc">Controller → Repository → Database design</div></div>
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">⚙️</div><div class="mod-title">Core Modules</div><div class="mod-desc">Patients, Doctors, Appointments, Billing</div></div>
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">📊</div><div class="mod-title">REST API & UI</div><div class="mod-desc">Endpoints, SPA dashboard & live analytics</div></div>
+        <div class="card"><div style="font-size:22px;margin-bottom:8px;">🌐</div><div class="mod-title">Deployment & Results</div><div class="mod-desc">Real-world hospital evaluation & future scope</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 3 — PROBLEM STATEMENT ═══════════════════ -->
+  <div class="slide" id="s3">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">❗ Problem Statement</div>
+      <h2 class="slide-title">Why Does This System Exist?</h2>
+      <div class="card-grid card-grid-2" style="gap:16px">
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:10px;">📋</div>
+          <div class="mod-title" style="margin-bottom:8px;">Information Silos</div>
+          <div class="mod-desc">Ward nurses log patients on paper, doctors record diagnoses on prescription pads, and billing departments compile invoices from scratch — causing transcription errors and data loss.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:10px;">📅</div>
+          <div class="mod-title" style="margin-bottom:8px;">Scheduling Conflicts</div>
+          <div class="mod-desc">Appointments are booked without visibility into doctor availability, leading to overbooking, long queues, and clinician fatigue across departments.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:10px;">💸</div>
+          <div class="mod-title" style="margin-bottom:8px;">Billing Omissions</div>
+          <div class="mod-desc">Completed consultations must be manually reported to the billing counter. Patients leaving without notification results in direct revenue loss.</div>
+        </div>
+        <div class="card">
+          <div style="font-size:22px;margin-bottom:10px;">📉</div>
+          <div class="mod-title" style="margin-bottom:8px;">No Live Metrics</div>
+          <div class="mod-desc">Clinic managers have zero real-time insight into daily doctor load, patient demographics, diagnostic patterns, or revenue indicators.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 4 — OBJECTIVES ═══════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="blob blob-1"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🎯 Objectives</div>
+      <h2 class="slide-title">Project Objectives</h2>
+      <div class="card" style="padding:28px 32px;">
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-content"><div class="tl-title">Integrated Operations</div><div class="tl-desc">Bridge gaps between patient registration, doctor scheduling, appointment logging, and invoicing in a single synchronized platform.</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--teal)"></div><div class="tl-content"><div class="tl-title">Automated Invoicing</div><div class="tl-desc">Business rule engine that auto-triggers a ₹150 billing record whenever a doctor marks a consultation as COMPLETED.</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--purple)"></div><div class="tl-content"><div class="tl-title">Persistent Data Storage</div><div class="tl-desc">Normalized database schema via Spring Data JPA & H2 file-based storage — zero database setup, data preserved across restarts.</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--pink)"></div><div class="tl-content"><div class="tl-title">Premium UI Dashboard</div><div class="tl-desc">Modern SPA with real-time KPI metrics, age & revenue distribution charts, and glassmorphic dark/light theming.</div></div></div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div><div class="tl-content"><div class="tl-title">Clerical Efficiency</div><div class="tl-desc">Enable ward managers, billing clerks, and medical officers to quickly search, schedule, update, and audit clinical records.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 5 — TECH STACK ════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🔧 Technology Stack</div>
+      <h2 class="slide-title">Technologies Used</h2>
+      <div class="card-grid card-grid-2">
+        <div class="card">
+          <div class="mod-title" style="margin-bottom:14px;">⚙️ Backend</div>
+          <div class="badges-wrap" style="margin-top:0">
+            <span class="badge badge-blue">☕ Java 21</span>
+            <span class="badge badge-blue">🍃 Spring Boot 3.4</span>
+            <span class="badge badge-teal">🗃️ Spring Data JPA</span>
+            <span class="badge badge-teal">✅ Bean Validation</span>
+            <span class="badge badge-purple">🔒 Hibernate ORM</span>
+            <span class="badge badge-purple">🐱 Embedded Tomcat</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="mod-title" style="margin-bottom:14px;">🗄️ Database</div>
+          <div class="badges-wrap" style="margin-top:0">
+            <span class="badge badge-teal">🗄️ H2 File Database</span>
+            <span class="badge badge-blue">🔗 AUTO_SERVER Mode</span>
+            <span class="badge badge-purple">📊 H2 Console</span>
+            <span class="badge badge-teal">🔄 DDL Auto-Update</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="mod-title" style="margin-bottom:14px;">🎨 Frontend</div>
+          <div class="badges-wrap" style="margin-top:0">
+            <span class="badge badge-pink">🌐 HTML5</span>
+            <span class="badge badge-pink">🎨 Vanilla CSS3</span>
+            <span class="badge badge-purple">⚡ JavaScript (SPA)</span>
+            <span class="badge badge-blue">📈 Chart.js</span>
+            <span class="badge badge-teal">🌓 Dark/Light Theme</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="mod-title" style="margin-bottom:14px;">🛠️ Build & Deploy</div>
+          <div class="badges-wrap" style="margin-top:0">
+            <span class="badge badge-blue">📦 Apache Maven</span>
+            <span class="badge badge-teal">🐳 Docker</span>
+            <span class="badge badge-purple">☁️ Render (Cloud)</span>
+            <span class="badge badge-pink">🐙 GitHub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 6 — ARCHITECTURE ══════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="blob blob-1"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🏗️ System Architecture</div>
+      <h2 class="slide-title">Three-Layer Architecture</h2>
+      <div class="card-grid card-grid-2" style="align-items:center; gap:24px">
+        <div>
+          <div class="arch">
+            <div class="arch-layer">
+              <div class="arch-block" style="border-color:rgba(79,140,255,0.5);color:var(--blue);width:260px">🌐 SPA Frontend (HTML + CSS + JS)</div>
+            </div>
+            <div class="arch-arrow">↕ REST / JSON (AJAX fetch)</div>
+            <div class="arch-layer">
+              <div class="arch-block" style="border-color:rgba(0,212,170,0.5);color:var(--teal);width:260px">⚙️ Spring Boot REST Controllers</div>
+            </div>
+            <div class="arch-arrow">↕ @Autowired Repositories</div>
+            <div class="arch-layer">
+              <div class="arch-block" style="border-color:rgba(168,85,247,0.5);color:var(--purple);width:260px">🗃️ Spring Data JPA + Hibernate</div>
+            </div>
+            <div class="arch-arrow">↕ JDBC SQL</div>
+            <div class="arch-layer">
+              <div class="arch-block" style="border-color:rgba(244,114,182,0.5);color:var(--pink);width:260px">💾 H2 File Database (hospital_db)</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card"><div class="mod-title">Controller Layer</div><div class="mod-desc" style="margin-top:6px">@RestController classes handle HTTP routing, request validation and response serialization for all 5 modules.</div></div>
+          <div class="card"><div class="mod-title">Repository Layer</div><div class="mod-desc" style="margin-top:6px">JpaRepository interfaces auto-generate CRUD SQL — no boilerplate needed. Custom queries via method naming.</div></div>
+          <div class="card"><div class="mod-title">Model Layer</div><div class="mod-desc" style="margin-top:6px">@Entity annotated POJOs define database tables. @ManyToOne relationships link Appointments to Patients & Doctors.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 7 — DATA MODEL ════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="blob blob-2"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">📐 Data Model</div>
+      <h2 class="slide-title">Entity Relationship Design</h2>
+      <div class="card-grid card-grid-4">
+        <div class="card mod-card">
+          <div class="mod-icon">👤</div>
+          <div class="mod-title">Patient</div>
+          <ul class="check-list" style="gap:5px">
+            <li>id (PK)</li><li>name, dob, gender</li><li>email, phone</li><li>address</li><li>medicalHistory</li>
+          </ul>
+        </div>
+        <div class="card mod-card">
+          <div class="mod-icon">👨‍⚕️</div>
+          <div class="mod-title">Doctor</div>
+          <ul class="check-list" style="gap:5px">
+            <li>id (PK)</li><li>name, specialization</li><li>email, phone</li><li>availability</li><li>roomNumber</li>
+          </ul>
+        </div>
+        <div class="card mod-card">
+          <div class="mod-icon">📅</div>
+          <div class="mod-title">Appointment</div>
+          <ul class="check-list" style="gap:5px">
+            <li>id (PK)</li><li>patient (FK)</li><li>doctor (FK)</li><li>dateTime, status</li><li>diagnosis, prescription</li>
+          </ul>
+        </div>
+        <div class="card mod-card">
+          <div class="mod-icon">💳</div>
+          <div class="mod-title">Billing</div>
+          <ul class="check-list" style="gap:5px">
+            <li>id (PK)</li><li>patient (FK)</li><li>appointment (FK)</li><li>amount, status</li><li>insuranceProvider</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px; padding:16px 24px">
+        <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+          <div style="font-size:13px;color:var(--muted)">🔗 Relationships:</div>
+          <span class="badge badge-blue">Patient ←→ Appointment (1:N)</span>
+          <span class="badge badge-teal">Doctor ←→ Appointment (1:N)</span>
+          <span class="badge badge-purple">Appointment ←→ Billing (1:1)</span>
+          <span class="badge badge-pink">Patient ←→ Billing (1:N)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 8 — PATIENT MODULE ════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">👤 Module 1</div>
+      <h2 class="slide-title">Patient Management</h2>
+      <div class="card-grid card-grid-2" style="gap:20px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">📋 Features</div>
+            <ul class="check-list">
+              <li>Register new patients with full demographic and medical history</li>
+              <li>View, search, and filter patient records in real-time</li>
+              <li>Update patient details (address, contact, medical notes)</li>
+              <li>Delete patient records with cascade handling</li>
+              <li>Seeded with 5 sample patients on first startup</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">✅ Validation Rules</div>
+            <ul class="check-list">
+              <li>Name: @NotBlank (required)</li>
+              <li>Email: @Email (valid format enforced)</li>
+              <li>Phone: @NotBlank (required)</li>
+              <li>Gender: @NotBlank (required)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="font-family:monospace;font-size:12px;color:var(--teal);line-height:1.8;overflow:auto">
+          <div style="color:var(--muted);margin-bottom:12px;font-family:Inter;font-size:11px;font-weight:700;letter-spacing:1px">SAMPLE PATIENT ENTITY</div>
+          <div><span style="color:var(--purple)">@Entity</span> <span style="color:var(--blue)">class</span> Patient {</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--purple)">@Id @GeneratedValue</span></div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> Long id;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--purple)">@NotBlank</span></div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> String name;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--purple)">@Email</span></div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> String email;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> String gender;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> String phone;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">private</span> String medicalHistory;</div>
+          <div>}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 9 — DOCTOR & APPOINTMENT ══════════════════ -->
+  <div class="slide" id="s9">
+    <div class="blob blob-1"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">👨‍⚕️📅 Module 2 & 3</div>
+      <h2 class="slide-title">Doctor & Appointment Management</h2>
+      <div class="card-grid card-grid-2" style="gap:20px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">👨‍⚕️ Doctor Module</div>
+            <ul class="check-list">
+              <li>Manage doctor profiles: name, specialization, room & schedule</li>
+              <li>5 pre-seeded doctors across Cardiology, Neurology, Pediatrics, Orthopedics, General Medicine</li>
+              <li>Availability slots displayed per doctor (Mon–Fri schedules)</li>
+              <li>Full CRUD: create, view, update, delete doctor records</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🩺 Seeded Doctors</div>
+            <ul class="check-list">
+              <li>Dr. Sarah Connor — Cardiology</li>
+              <li>Dr. John Watson — Pediatrics</li>
+              <li>Dr. Gregory House — Neurology</li>
+              <li>Dr. Meredith Grey — General Medicine</li>
+              <li>Dr. Stephen Strange — Orthopedics</li>
+            </ul>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">📅 Appointment Module</div>
+            <ul class="check-list">
+              <li>Book appointments linking a Patient to a Doctor with date/time</li>
+              <li>Status lifecycle: PENDING → COMPLETED</li>
+              <li>Add diagnosis and prescription after completion</li>
+              <li>Completing appointment auto-triggers a billing entry</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">⚡ Auto-Billing Rule</div>
+            <div class="quote-box" style="margin-top:8px">
+              <p>When an appointment status changes to <strong>COMPLETED</strong>, a $150.00 billing invoice is automatically created for the linked patient — eliminating manual billing entry.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 10 — BILLING ══════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="blob blob-2"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">💳 Module 4</div>
+      <h2 class="slide-title">Billing & Invoice Management</h2>
+      <div class="card-grid card-grid-2" style="gap:20px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">💡 Key Features</div>
+            <ul class="check-list">
+              <li>Auto-generated $150 invoice per completed appointment</li>
+              <li>Status tracking: PAID / UNPAID</li>
+              <li>Insurance provider field per record</li>
+              <li>Manual billing for lab work, tests, and utilities</li>
+              <li>Filter bills by patient or payment status</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">📊 Sample Billing Data</div>
+            <ul class="check-list">
+              <li>Bill 1: James Smith — $150 — PAID (Blue Cross)</li>
+              <li>Bill 2: Emily Davis — $150 — UNPAID (None)</li>
+              <li>Bill 3: Robert Johnson — $150 — PAID (Aetna)</li>
+              <li>Bill 4: James Smith — $75 (Lab) — UNPAID (Blue Cross)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:center">Revenue Breakdown</div>
+          <div class="chart-wrap" style="max-width:220px">
+            <canvas id="billingChart"></canvas>
+          </div>
+          <div style="display:flex;gap:18px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--teal)"></div> PAID ($300)</div>
+            <div style="display:flex;align-items:center;gap:6px"><div style="width:12px;height:12px;border-radius:3px;background:var(--pink)"></div> UNPAID ($225)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 11 — REST API ═════════════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🔌 REST API</div>
+      <h2 class="slide-title">API Endpoint Reference</h2>
+      <div class="card" style="overflow:auto">
+        <table class="api-table">
+          <thead>
+            <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="method GET">GET</span></td><td>/api/patients</td><td>Retrieve all patient records</td></tr>
+            <tr><td><span class="method POST">POST</span></td><td>/api/patients</td><td>Register a new patient</td></tr>
+            <tr><td><span class="method PUT">PUT</span></td><td>/api/patients/{id}</td><td>Update patient information</td></tr>
+            <tr><td><span class="method DELETE">DELETE</span></td><td>/api/patients/{id}</td><td>Delete a patient record</td></tr>
+            <tr><td><span class="method GET">GET</span></td><td>/api/doctors</td><td>List all doctors</td></tr>
+            <tr><td><span class="method GET">GET</span></td><td>/api/appointments</td><td>Get all appointments</td></tr>
+            <tr><td><span class="method PUT">PUT</span></td><td>/api/appointments/{id}/complete</td><td>Mark as completed (triggers billing)</td></tr>
+            <tr><td><span class="method GET">GET</span></td><td>/api/billing</td><td>Retrieve all billing records</td></tr>
+            <tr><td><span class="method PUT">PUT</span></td><td>/api/billing/{id}/pay</td><td>Mark invoice as PAID</td></tr>
+            <tr><td><span class="method GET">GET</span></td><td>/api/stats</td><td>Live KPI metrics for dashboard</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 12 — DASHBOARD UI ═════════════════════════ -->
+  <div class="slide" id="s12">
+    <div class="blob blob-1"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div class="slide-tag">📊 UI Dashboard</div>
+      <h2 class="slide-title">SPA Dashboard & Analytics</h2>
+      <div class="card-grid card-grid-2" style="gap:20px;align-items:start">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🎨 UI Features</div>
+            <ul class="check-list">
+              <li>Glassmorphism dark/light mode with CSS variables</li>
+              <li>Live KPI cards: total patients, doctors, appointments, revenue</li>
+              <li>Chart.js bar charts — age groups & revenue by month</li>
+              <li>Full CRUD forms for all entities in a single page</li>
+              <li>Real-time search and filter on all data tables</li>
+              <li>Responsive layout for desktop and tablet</li>
+            </ul>
+          </div>
+          <div class="card-grid card-grid-2" style="gap:10px">
+            <div class="card stat-chip"><div class="stat-number grad-blue">5</div><div class="stat-label">Doctors</div></div>
+            <div class="card stat-chip"><div class="stat-number grad-teal">5</div><div class="stat-label">Patients</div></div>
+            <div class="card stat-chip"><div class="stat-number grad-purple">5</div><div class="stat-label">Appointments</div></div>
+            <div class="card stat-chip"><div class="stat-number grad-pink">$525</div><div class="stat-label">Revenue</div></div>
+          </div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Patient Age Distribution</div>
+          <canvas id="ageChart" style="max-height:200px"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 13 — DATA SEEDER ══════════════════════════ -->
+  <div class="slide" id="s13">
+    <div class="blob blob-2"></div><div class="blob blob-1"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🌱 Data Seeder & Testing</div>
+      <h2 class="slide-title">Startup Data Seeder & Validation</h2>
+      <div class="card-grid card-grid-2" style="gap:20px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🌱 DataSeeder Component</div>
+            <ul class="check-list">
+              <li>Implements CommandLineRunner — runs on every app startup</li>
+              <li>Checks if doctorRepository.count() == 0 before seeding</li>
+              <li>Seeds 5 Doctors, 5 Patients, 5 Appointments & 4 Billing records</li>
+              <li>Data reflects real clinical scenarios (diagnoses, prescriptions)</li>
+              <li>Idempotent — will not duplicate data on restarts</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🧪 Testing Strategy</div>
+            <ul class="check-list">
+              <li>Spring Boot context load test via @SpringBootTest</li>
+              <li>JUnit 5 for unit and integration test coverage</li>
+              <li>Maven Surefire plugin runs tests on every build</li>
+              <li>Real-world evaluation at 2 hospitals in Raipur</li>
+              <li>Build verified: mvnw clean package — BUILD SUCCESS ✅</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card" style="font-family:monospace;font-size:12px;color:var(--teal);line-height:1.8">
+          <div style="color:var(--muted);margin-bottom:12px;font-family:Inter;font-size:11px;font-weight:700;letter-spacing:1px">DATASEEDER SNIPPET</div>
+          <div><span style="color:var(--purple)">@Component</span></div>
+          <div><span style="color:var(--blue)">public class</span> DataSeeder</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--blue)">implements</span> CommandLineRunner {</div>
+          <div>&nbsp;</div>
+          <div>&nbsp;&nbsp;<span style="color:var(--purple)">@Override</span></div>
+          <div>&nbsp;&nbsp;<span style="color:var(--blue)">public void</span> run(String... args) {</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--blue)">if</span>(doctorRepo.count() == <span style="color:var(--pink)">0</span>) {</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;seedData();</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+          <div>&nbsp;&nbsp;}</div>
+          <div>}</div>
+          <div>&nbsp;</div>
+          <div style="color:var(--muted)">// Seeds: 5 doctors, 5 patients</div>
+          <div style="color:var(--muted)">// 5 appointments, 4 billing records</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 14 — DEPLOYMENT ═══════════════════════════ -->
+  <div class="slide" id="s14">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div>
+    <div class="slide-content">
+      <div class="slide-tag">🌐 Deployment & Real-World Use</div>
+      <h2 class="slide-title">Deployment & Clinical Evaluation</h2>
+      <div class="card-grid card-grid-2" style="gap:20px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🏥 Hospital Evaluation</div>
+            <ul class="check-list">
+              <li><strong>Kalyan Hospital, Raipur</strong> — Dr. Sameer Sen (Senior Medical Officer): Operational monitoring, appointment coordination, doctor availability tracking</li>
+              <li><strong>BSP Sector 7 Hospital, Raipur</strong> — Sister Mini Kurian (Chief Nursing Superintendent): Patient registration, ward allocations, billing/invoice audits</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🚀 Deployment Options</div>
+            <ul class="check-list">
+              <li><strong>Local:</strong> java -jar management-0.0.1-SNAPSHOT.jar</li>
+              <li><strong>Docker:</strong> docker compose up --build -d</li>
+              <li><strong>Cloud (Render):</strong> Auto-deploy via render.yaml + GitHub</li>
+              <li>Intra-clinic network deployment via H2 AUTO_SERVER mode</li>
+              <li>Zero DB installation — embedded H2 runs out of the box</li>
+            </ul>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">📈 Performance Highlights</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+              <div class="card stat-chip" style="padding:16px"><div class="stat-number grad-blue" style="font-size:28px">~50ms</div><div class="stat-label">Avg API Response</div></div>
+              <div class="card stat-chip" style="padding:16px"><div class="stat-number grad-teal" style="font-size:28px">8080</div><div class="stat-label">Default Port</div></div>
+              <div class="card stat-chip" style="padding:16px"><div class="stat-number grad-purple" style="font-size:28px">0</div><div class="stat-label">DB Setup Steps</div></div>
+              <div class="card stat-chip" style="padding:16px"><div class="stat-number grad-pink" style="font-size:28px">REST</div><div class="stat-label">API Standard</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 15 — CONCLUSION ═══════════════════════════ -->
+  <div class="slide" id="s15">
+    <div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div>
+    <div class="slide-content">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center">
+        <div>
+          <div class="slide-tag">🎓 Conclusion</div>
+          <h2 class="slide-title">Summary & Future Scope</h2>
+          <div class="card" style="margin-bottom:16px">
+            <div class="mod-title" style="margin-bottom:10px">✅ What Was Achieved</div>
+            <ul class="check-list">
+              <li>Full-stack Spring Boot hospital platform — 0 to production</li>
+              <li>Automated billing engine saving manual clerical work</li>
+              <li>Premium SPA dashboard with real-time analytics</li>
+              <li>Deployed & validated at 2 real hospitals in Raipur</li>
+              <li>Packaged as Docker image + Render cloud deployment</li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="mod-title" style="margin-bottom:10px">🔮 Future Scope</div>
+            <ul class="check-list">
+              <li>Role-based authentication (Admin, Doctor, Nurse)</li>
+              <li>PostgreSQL migration for multi-hospital support</li>
+              <li>Real payment gateway integration</li>
+              <li>Mobile-responsive PWA with offline mode</li>
+              <li>WhatsApp / SMS appointment reminders</li>
+            </ul>
+          </div>
+        </div>
+        <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px">
+          <div class="thank-you">Thank You!</div>
+          <p class="subtitle" style="font-size:15px">Questions & Discussion</p>
+          <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:8px">
+            <div class="author-chip" style="flex-direction:column;padding:16px 28px;gap:6px;border-radius:16px">
+              <div style="font-size:18px;font-weight:700;color:var(--text)">S Aditya</div>
+              <div style="font-size:12px;color:var(--muted)">M.Sc. Computer Science</div>
+              <div style="font-size:12px;color:var(--muted)">ICFAI University, Raipur • 2024–26</div>
+              <div style="font-size:12px;color:var(--blue)">22STUCRPN01019</div>
+            </div>
+          </div>
+          <div class="badges-wrap" style="justify-content:center">
+            <span class="badge badge-blue">☕ Java 21</span>
+            <span class="badge badge-teal">🍃 Spring Boot</span>
+            <span class="badge badge-purple">🗃️ H2 JPA</span>
+            <span class="badge badge-pink">🌐 SPA</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<!-- NAVIGATION -->
+<div id="nav">
+  <button id="prev-btn" title="Previous">◀</button>
+  <div class="dot-nav" id="dot-nav"></div>
+  <span id="slide-counter">1 / 15</span>
+  <button id="next-btn" title="Next">▶</button>
+</div>
+
+<script>
+const TOTAL = 15;
+let current = 1;
+
+const slides = Array.from({length:TOTAL}, (_,i) => document.getElementById('s'+(i+1)));
+const dotNav = document.getElementById('dot-nav');
+const counter = document.getElementById('slide-counter');
+const progress = document.getElementById('progress');
+
+// build dots
+for(let i=0;i<TOTAL;i++){
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active-dot':'');
+  d.addEventListener('click', () => goTo(i+1));
+  dotNav.appendChild(d);
+}
+
+function goTo(n, dir='next'){
+  if(n<1||n>TOTAL||n===current) return;
+  const prev = slides[current-1];
+  prev.classList.remove('active');
+  prev.classList.add('exit');
+  setTimeout(()=>prev.classList.remove('exit'), 600);
+
+  current = n;
+  slides[current-1].classList.add('active');
+  counter.textContent = current+' / '+TOTAL;
+  progress.style.width = (current/TOTAL*100)+'%';
+
+  // update dots
+  dotNav.querySelectorAll('.dot').forEach((d,i)=>{
+    d.className = 'dot'+(i===current-1?' active-dot':'');
+  });
+}
+
+document.getElementById('next-btn').addEventListener('click',()=>goTo(current+1));
+document.getElementById('prev-btn').addEventListener('click',()=>goTo(current-1));
+document.addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'||e.key===' ') goTo(current+1);
+  if(e.key==='ArrowLeft') goTo(current-1);
+});
+
+// init progress
+progress.style.width = (1/TOTAL*100)+'%';
+
+// ── Charts ──
+// Billing pie (slide 10)
+window.addEventListener('load',()=>{
+  const b = document.getElementById('billingChart');
+  if(b) new Chart(b, {
+    type: 'doughnut',
+    data: {
+      labels:['PAID','UNPAID'],
+      datasets:[{data:[300,225],backgroundColor:['#00d4aa','#f472b6'],borderWidth:0,hoverOffset:6}]
+    },
+    options: {plugins:{legend:{display:false}}, cutout:'68%'}
+  });
+
+  const a = document.getElementById('ageChart');
+  if(a) new Chart(a, {
+    type: 'bar',
+    data: {
+      labels:['18-30','31-45','46-60','60+'],
+      datasets:[{
+        label:'Patients',
+        data:[1,2,1,1],
+        backgroundColor:['rgba(79,140,255,0.7)','rgba(0,212,170,0.7)','rgba(168,85,247,0.7)','rgba(244,114,182,0.7)'],
+        borderRadius:8, borderWidth:0
+      }]
+    },
+    options:{
+      plugins:{legend:{display:false}},
+      scales:{
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#94a3b8',font:{size:11}}},
+        x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:11}}}
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
